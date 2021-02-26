@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
+from .serializers import HelloWorldSerializer
+from .models import Subscriber
 
 class HelloWorldView(APIView):
     def get(self,request):
@@ -9,10 +10,13 @@ class HelloWorldView(APIView):
 
 
     def post(self,request):
-        name=request.data.get('name')
+        
+        serializer=HelloWorldSerializer(data=request.data)
 
-        if not name:
-            return Response({"message":"NO name passed"})
+        if serializer.is_valid():
+            subscriber_instance=Subscriber.objects.create(**serializer.data)
 
+            return Response({"message":f"Created subscriber {subscriber_instance.id}"})
 
-        return Response({"message":f"Hello {name}"})
+        else:
+            return Response({"errors":serializer.errors})
